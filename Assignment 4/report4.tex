@@ -1,0 +1,440 @@
+documentclass[12pt, a4paper]{article}
+usepackage{graphicx}
+usepackage{amsmath}
+usepackage{float}
+usepackage{minted}
+
+title{EE2703 ASSIGNMENT 4}
+author{Nandha Varman EE19B043}
+date{}
+
+DeclareUnicodeCharacter{2212}{-}
+begin{document}
+
+maketitle
+
+section{Outline}
+In this assignment, we will use the concept of Fourier series to approximate functions $exp(x)$ and $cos(cos(x))$.
+
+We will employ two methods to find the coefficients, namely textbf{Direct Integration} and textbf{Least Squares Estimation}. We will also compare the results of the two methods and then see how close the Fourier approximation is to the actual functions.
+
+
+section{Theory}
+textit{Any periodic function can be written as a sum of shifted sinusoids}
+We will apply this idea of Fourier series in this assignment. Namely a function can be approximated in the domain $[0,2pi]$ by repeating its values in $[0,2pi]$, to make it a periodic function with periodic $2pi$.
+
+The Fourier series of a function $f(x)$ is given by
+
+begin{equation}
+    f(x) = a_0 + sum_{k=1}^{infty}a_kcos(kx) + b_ksin(kx)
+end{equation}
+where,
+begin{equation}
+        a_0 = frac{1}{2pi}int_{0}^{2pi}f(x)dx
+end{equation}
+begin{equation}
+    begin{split}
+    a_k = frac{1}{pi}int_{0}^{2pi}f(x)cos(kx)dx
+    b_k = frac{1}{pi}int_{0}^{2pi}f(x)sin(kx)dx
+    end{split}
+end{equation}
+
+section{Tasks}
+    subsection{Part 1}
+    begin{itemize}
+        item Define Python functions for the two functions $e^x$ and $cos(cos(x))$ which return a vector (or scalar) value.
+        item Plot the functions over the interval $[-2pi,4pi)$.
+        item Discuss periodicity of both functions.
+        item Plot the expected functions from Fourier series.
+    end{itemize}
+    
+subsubsection{Code}
+begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=white,
+fontsize=footnotesize,
+]
+{python}
+#importing necessary modules
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.integrate import quad
+
+PI = np.pi
+
+# functions for exp(x) and cos(cos(x))
+def f1(x)
+    return np.exp(x)
+def f2(x)
+    return np.cos(np.cos(x))
+
+t = np.linspace(-2PI, 4PI, 500 )
+t = t[0-1]
+
+# lists for locations and labels for ticks
+locs = [-2PI, -32PI, -PI,-PI2, 0, PI2, PI, 3PI2, 2PI, 5PI2, 3PI, 7PI2, 4PI]
+labels = ['$-2pi$', '$-3pi2$', '$-pi$','$-pi2$', 0, '$pi2$', '$pi$', '$3pi2$', '$2pi$', '$5pi2$', '$3pi$','$7pi2$', '$4pi$']
+
+# plotting exp(x) as a semilog plot
+plt.figure(1)
+plt.xticks(locs, labels) 
+plt.semilogy(t,f1(t),'k', label = 'True function')
+plt.semilogy(t,f1(t%(2PI)),'r', label = 'Expected')
+plt.legend(loc='upper right')
+plt.title('$exp(x) semilog plot$')
+plt.grid()
+plt.show()
+
+# plotting cos(cos(x))
+plt.figure(2)
+plt.xticks(locs, labels) 
+plt.plot(t,f2(t),'k', label = 'True function')
+plt.plot(t,f2(t%(2PI)),'--', label = 'Expected')
+plt.legend(loc='upper right')
+plt.title('$cos(cos(x))$')
+plt.grid()
+plt.show()
+
+end{minted}
+
+subsubsection{Plots}
+begin{figure}[H]
+    centering
+    begin{tabular}{cc}
+        includegraphics[scale=0.5]{1.png} &                includegraphics[scale=0.5]{2.png}
+    end{tabular}
+end{figure}
+
+subsubsection{Observations}
+begin{enumerate}
+    item From the above plots, you can easily see that $cos(cos(x))$ is periodic with period $2pi$,and $e^x$ isn't periodic and rises monotonically.
+    item From the Fourier series, we expect that the Fourier approximation of the function would be repetitions of the function between $[0, 2pi)$. 
+end{enumerate}
+
+subsection{Part 2}
+begin{itemize}
+    item Obtain the first 51 coefficients, i.e., $a_0$, $a_1$, $b_1$,ldots for $e^x$ and $cos(cos(x))$ using the texttt{quad} function.
+    item Calculate the function using those coefficients and compare with original functions graphically.
+end{itemize}
+ 
+subsubsection{Code}
+begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=white,
+fontsize=footnotesize,
+]
+{python}
+
+def cos_coeff(x, k, h)
+    return h(x)np.cos(kx)
+def sin_coeff(x, k, h)
+    return h(x)np.sin(kx)
+
+# function to find the first 51 fourier series coefficients
+def fourier_coeff_51(h)
+    coeff = np.zeros(51)
+    coeff[0] = quad(cos_coeff, 0, 2PI, args =(0, h))[0](2PI)
+    for i in range(1,26)
+        coeff[2i-1] = quad(cos_coeff, 0, 2PI, args =(i, h))[0](PI)
+        coeff[2i] = quad(sin_coeff, 0, 2PI, args =(i, h))[0](PI)
+    return  coeff
+
+# arrays holding the first 51 FS coefficients in the form [ a0, a1, b1, a2, b2,..]
+exp_coeff = fourier_coeff_51(f1)
+coscos_coeff = fourier_coeff_51(f2)
+
+end{minted}
+subsubsection{Observations}
+The function mintinline{python}{fourier_coeff_51(h)} takes in the name of a function as argument and returns the first 51 coefficients of the function texttt{h}, in order, as an array.
+
+subsection{Part 3}
+Make two  different  plots  for  each  function  using  texttt{semilogy}  and  texttt{loglog} and plot the magnitude of the coefficients versus n.
+
+subsubsection{Code}
+
+begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=white,
+fontsize=footnotesize,
+]
+{python}
+# generating lists for location and labels for the coefficents plot
+n_locs = range(51)
+n_labels = ['$a_0$']
+for i in range(1,26)
+    n_labels.append('$a_{'+str(i)+'}$')
+    n_labels.append('$b_{'+str(i)+'}$') 
+
+# semi-log plot for FS coefficients of exp(x)
+plt.figure(3)
+plt.xticks(n_locs,n_labels , rotation = '90')
+plt.tick_params(axis='x', labelsize=7)
+plt.semilogy(0, np.abs(exp_coeff[0]), 'ro')
+plt.semilogy(np.arange(1,51,2), np.abs(exp_coeff[12]),'ro', label = 'Cosine coefficients')
+plt.semilogy(np.arange(2,51,2), np.abs(exp_coeff[22]),'bo', label = 'Sine coefficents')
+plt.legend(loc='upper right')
+plt.title('$exp(x)$ fourier coefficientssemilog plot')
+plt.grid()
+plt.show()
+
+# log-log plot for FS coefficients of exp(x)
+plt.figure(4)
+plt.loglog(0, np.abs(exp_coeff[0]), 'ro')
+plt.loglog(np.arange(1,51,2), np.abs(exp_coeff[12]),'ro', label = 'Cosine coefficients')
+plt.loglog(np.arange(2,51,2), np.abs(exp_coeff[22]),'bo', label = 'Sine coefficents')
+plt.legend(loc='upper right')
+plt.title('$exp(x)$ fourier coefficientslog-log plot')
+plt.grid()
+plt.show()
+
+# semi-log plot for FS coefficients of cos(cos(x))
+plt.figure(5)
+plt.xticks(n_locs,n_labels , rotation = '90')
+plt.tick_params(axis='x', labelsize=7)
+plt.semilogy(0, np.abs(coscos_coeff[0]), 'ro')
+plt.semilogy(np.arange(1,51,2), np.abs(coscos_coeff[12]),'ro', label = 'Cosine coefficients')
+plt.semilogy(np.arange(2,51,2), np.abs(coscos_coeff[22]),'bo', label = 'Sine coefficents')
+plt.legend(loc='upper right')
+plt.title('$cos(cos(x))$ fourier coefficientssemilog plot')
+plt.grid()
+plt.show()
+
+# log-log plot for FS coefficients of cos(cos(x))
+plt.figure(6)
+plt.loglog(0, np.abs(coscos_coeff[0]), 'ro')
+plt.loglog(np.arange(1,51,2), np.abs(coscos_coeff[12]),'ro', label = 'Cosine coefficients')
+plt.loglog(np.arange(2,51,2), np.abs(coscos_coeff[22]),'bo', label = 'Sine coefficents')
+plt.legend(loc='upper right')
+plt.title('$cos(cos(x))$ fourier coefficientslog-log plot')
+plt.grid()
+plt.show()
+end{minted}
+
+subsubsection{Plots}
+begin{figure}[H]
+    centering
+    begin{tabular}{cc}
+        includegraphics[scale=0.5]{3.png} &                includegraphics[scale=0.5]{4.png}
+        includegraphics[scale=0.5]{5.png} &                includegraphics[scale=0.5]{6.png}
+    end{tabular}
+end{figure}
+
+subsubsection{Observations}
+begin{enumerate}
+    item From the above plots we observe that almost all $b_n$ coefficients are very close to 0 for $cos(cos(x))$. This is expected due to the odd nature of the integrand between $[-pi,pi)$.
+
+    It does not become exactly zero due to approximations in the implementation of the texttt{quad} function.
+
+    item Rate of decay of Fourier coefficients is determined by how smooth the  function is. If a function is infinitely differentiable then its Fourier coefficients decay very fast. But if the $k^{th}$ derivative of the function $f$, denoted by $f^{(k)}$, is discontinuous, then the rate of decay of the Fourier coefficients is only $frac{1}{n^k}$.
+
+    $cos(cos(x))$ is infinitely differentiable, hence it's Fourier coefficients decay very fast, while that of $e^x$ decay very slowly due to the discontinuity in the Fourier approximation of the function at $2npi$.
+end{enumerate}
+
+subsection{Part 4}
+begin{itemize}
+    item Use textit{Least Squares estimation} to find the Fourier coefficients of the functions, using texttt{scipy.linalg.lstsq} .          
+    item Build the coefficient matrix $A$ and the constant matrix $b$.
+end{itemize}
+
+subsubsection{Code}
+begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=white,
+fontsize=footnotesize,
+]
+{python}
+
+# function to find the first 51 coefficients by least squares estimation
+def Lstsq_FS_coeff(f)
+    x=np.linspace(0,2PI,401)
+    x=x[-1] # drop last term to have a proper periodic integral
+    b=f(x) # f has been written to take a vector
+    A=np.zeros((400,51)) # allocate space for A
+    A[,0]=1 # col 1 is all ones
+    for k in range(1,26)
+        A[,2k-1]=np.cos(kx) # cos(kx) column
+        A[,2k]=np.sin(kx) # sin(kx) column
+    #endfor
+    ls_coeffs=np.linalg.lstsq(A,b,rcond = -1)[0] # the ’[0]’ is to pull out the
+    # best fit vector. lstsq returns a list.
+    return ls_coeffs
+
+# arrays holding the first 51 FS coefficients obtained by least squares estimation
+exp_coeff_lstsq = Lstsq_FS_coeff(f1)
+coscos_coeff_lstsq = Lstsq_FS_coeff(f2)
+
+
+
+end{minted}
+
+
+
+subsection{Part 5}
+begin{itemize}
+    item Compare the coefficients obtained through the textit{least squares method} and the textit{direct integration} method.
+    item Find the maximum deviation between the coefficients obtained in the two methods.
+end{itemize}
+
+subsubsection{Code}
+
+begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=white,
+fontsize=footnotesize,
+]
+{python}
+# semi-log comparison plot of the FS coefficents obtained by integrationa and
+# Least squares estimation for exp(x)
+plt.figure(7)
+plt.xticks(n_locs, n_labels, rotation = '90')
+plt.tick_params(axis='x', labelsize=7)
+plt.semilogy(range(51), np.abs(exp_coeff),'ro', label = 'by Integration')
+plt.semilogy(range(51), np.abs(exp_coeff_lstsq),'go', label = 'by Least Squares')
+plt.legend(loc='upper right')
+plt.title('$exp(x)$ fourier coefficients comparisonsemilog plot')
+plt.grid()
+plt.show()
+
+# semi-log comparison plot of the FS coefficents obtained by integrationa and
+# Least squares estimation for exp(x)
+plt.figure(8)
+plt.xticks(n_locs, n_labels, rotation = '90')
+plt.tick_params(axis='x', labelsize=7)
+plt.loglog(range(51), np.abs(exp_coeff),'ro', label = 'by Integration')
+plt.loglog(range(51), np.abs(exp_coeff_lstsq),'go', label = 'by Least Squares')
+plt.legend(loc='upper right')
+plt.title('$exp(x)$ fourier coefficients comparisonlog-log plot')
+plt.grid()
+plt.show()
+
+# semi-log comparison plot of the FS coefficents obtained by integrationa and
+# Least squares estimation for cos(cos(x))
+plt.figure(9)
+plt.xticks(n_locs, n_labels, rotation = '90')
+plt.tick_params(axis='x', labelsize=7)
+plt.semilogy(range(51), np.abs(coscos_coeff),'ro', label = 'by Integration')
+plt.semilogy(range(51), np.abs(coscos_coeff_lstsq),'go', label = 'by Least Squares')
+plt.legend(loc='upper right')
+plt.title('$cos(cos(x))$ fourier coefficients comparisonsemilog plot')
+plt.grid()
+plt.show()
+
+# log-log comparison plot of the FS coefficents obtained by integrationa and
+# Least squares estimation for cos(cos(x))
+plt.figure(10)
+plt.xticks(n_locs, n_labels, rotation = '90')
+plt.tick_params(axis='x', labelsize=7)
+plt.loglog(range(51), np.abs(coscos_coeff),'ro', label = 'by Integration')
+plt.loglog(range(51), np.abs(coscos_coeff_lstsq),'go', label = 'by Least Squares')
+plt.legend(loc='upper right')
+plt.title('$cos(cos(x))$ fourier coefficients comparison loglog plot')
+plt.grid()
+plt.show()
+
+# finding the maximum absolute deviation between the FS coefficients obtained by the two methods
+abs_error_exp = [abs(exp_coeff[i]-exp_coeff_lstsq[i]) for i in range(len(exp_coeff))]
+abs_error_coscos = [abs(coscos_coeff[i]-coscos_coeff_lstsq[i]) for i in range(len(coscos_coeff))]
+
+
+print('Largest deviation for exp(x) '+str(max(abs_error_exp)))
+print('Largest deviation for cos(cos(x)) '+str(max(abs_error_coscos)))
+end{minted}
+
+subsubsection{Plots}
+begin{figure}[H]
+    centering
+    begin{tabular}{cc}
+        includegraphics[scale=0.5]{7.png} &                includegraphics[scale=0.5]{8.png}
+        includegraphics[scale=0.5]{9.png} &                includegraphics[scale=0.5]{10.png}
+    end{tabular}
+end{figure}
+
+subsection{Part 6}
+begin{itemize}
+    item Computing $Acdot c$ from the estimated values of $c$ by textit{Least Squares Method} and plotting them.
+end{itemize}
+subsubsection{Code}
+
+begin{minted}
+[
+frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=white,
+fontsize=footnotesize,
+]
+{python}
+x = np.linspace(-2PI, 4PI, 1001)
+x = x[-1]
+
+A = np.zeros((1000,51))
+A[,0] = 1
+for k in range(1,26)
+    A[,2k-1]=np.cos(kx)
+    A[,2k]=np.sin(kx)
+
+# plot showing reconstruction of exp(x) using the obtained FS coefficients 
+plt.figure(11)
+plt.xticks(locs, labels) 
+plt.plot(x, np.matmul(A, exp_coeff ), 'go', label='Integration')
+plt.plot(x, np.matmul(A, exp_coeff_lstsq), 'r', label='Least squares')
+plt.title('Reconstruction of $exp(x)$')
+plt.legend()
+plt.grid()
+
+# plot showing reconstruction of cos(cos(x)) using the obtained FS coefficients
+plt.figure(12)
+plt.xticks(locs, labels) 
+plt.plot(x, np.matmul(A, coscos_coeff ), 'go', label='Integration')
+plt.plot(x, np.matmul(A, coscos_coeff_lstsq), 'r', label='Least squares')
+plt.title('Reconstruction of $cos(cos(x))$')
+plt.legend()
+plt.grid()
+
+end{minted}
+subsubsection{Plots}
+
+begin{figure}[H]
+    centering
+    begin{tabular}{cc}
+        includegraphics[scale=0.5]{11.png} &                includegraphics[scale=0.5]{12.png}
+    end{tabular}
+end{figure}
+
+subsubsection{Observations}
+begin{itemize}
+
+    item
+    We observe that there is a significant deviation for (e^{x}) at its discontinuities at (2npi). There are oscillations around the discontinuity points and their ripple amplitude decrease as we go close to discontinuity.This is called textbf{Gibbs phenomenon}.
+    item
+    Due to this, the original function and one which is reconstructed using
+    least squares will not fit exactly.
+    item
+    And as we know that Fourier series is used to define periodic signals in frequency domain. (e^{x}) is a aperiodic signal and we can't define an aperiodic signal on an interval of finite length.
+    item
+    For (cos(cos(x))) the curves fit almost perfectly because the function itself is a periodic function and it is continuous everywhere, so we get very negligible deviation and can reconstruct the signal with just the Fourier coefficients.
+end{itemize}
+section{Conclusions}
+The Fourier estimation of (e^x) does not match accurately with the function close to (0), but matches almost exactly in the case of (cos(cos(x))). This is due to the presence of a discontinuity at (x=0) for the periodic extension of (e^x). This discontinuity leads to non-uniform convergence of the
+Fourier series, with different rates for both the functions.
+
+The mismatch in the Fourier approximation of (e^x) is explained by Gibbs Phenomenon.
+
+We can hence conclude that the Fourier Series Approximation Method works extremely well for smooth periodic functions, but gives bad results for discontinuous periodic functions.
+
+end{document}
